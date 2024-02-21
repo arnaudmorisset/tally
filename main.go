@@ -67,7 +67,6 @@ func run() error {
 	return nil
 }
 
-// To be implemented
 func countWords(content []byte) int {
 	wordCount := 0
 
@@ -85,9 +84,19 @@ func countWords(content []byte) int {
 	return wordCount
 }
 
-// To be implemented
 func countLines(content []byte) int {
-	return 0
+	lineCount := 0
+
+	scanner := bufio.NewScanner(bytes.NewReader(content))
+	for scanner.Scan() {
+		lineCount++
+	}
+
+	if err := scanner.Err(); err != nil {
+		printError(err)
+	}
+
+	return lineCount
 }
 
 func toJSON(count Count) (string, error) {
