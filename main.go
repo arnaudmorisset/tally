@@ -40,21 +40,30 @@ func run() error {
 	filePath := flag.Arg(0)
 	content, err := os.ReadFile(filePath)
 	if err != nil {
-		err := fmt.Errorf("Error reading file: %v", err)
-		printError(err)
-		os.Exit(1)
+		return fmt.Errorf("Error reading file: %v", err)
 	}
 
 	// Perform counting
-	count := Count{
-		Words: countWords(content),
-		Lines: countLines(content),
-		Bytes: len(content),
+	count := Count{}
+	count.Bytes = len(content)
+
+	count.Words, err = countWords(content)
+	if err != nil {
+		return fmt.Errorf("Error counting words: %v", err)
+	}
+
+	count.Lines, err = countLines(content)
+	if err != nil {
+		return fmt.Errorf("Error counting lines: %v", err)
 	}
 
 	switch *outputFormat {
 	case "json":
-		jsonOutput, _ := toJSON(count)
+		jsonOutput, err := toJSON(count)
+		if err != nil {
+			return fmt.Errorf("Error converting to JSON: %v", err)
+		}
+
 		print(jsonOutput)
 	case "text":
 		fallthrough
@@ -67,7 +76,7 @@ func run() error {
 	return nil
 }
 
-func countWords(content []byte) int {
+func countWords(content []byte) (int, error) {
 	wordCount := 0
 
 	scanner := bufio.NewScanner(bytes.NewReader(content))
@@ -78,13 +87,13 @@ func countWords(content []byte) int {
 	}
 
 	if err := scanner.Err(); err != nil {
-		printError(err)
+		return 0, err
 	}
 
-	return wordCount
+	return wordCount, nil
 }
 
-func countLines(content []byte) int {
+func countLines(content []byte) (int, error) {
 	lineCount := 0
 
 	scanner := bufio.NewScanner(bytes.NewReader(content))
@@ -93,10 +102,10 @@ func countLines(content []byte) int {
 	}
 
 	if err := scanner.Err(); err != nil {
-		printError(err)
+		return 0, err
 	}
 
-	return lineCount
+	return lineCount, nil
 }
 
 func toJSON(count Count) (string, error) {
