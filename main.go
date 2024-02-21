@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/arnaudmorisset/tally/internal/counting"
+	"github.com/arnaudmorisset/tally/internal/formatting"
 )
 
 // printError prints the error to stderr.
@@ -17,12 +17,6 @@ func printError(err error) {
 // print prints the arguments to stdout.
 func print(args ...interface{}) {
 	fmt.Println(args...)
-}
-
-type Count struct {
-	Words int `json:"words"`
-	Lines int `json:"lines"`
-	Bytes int `json:"bytes"`
 }
 
 func main() {
@@ -43,23 +37,22 @@ func run() error {
 		return fmt.Errorf("Error reading file: %v", err)
 	}
 
-	// Perform counting
-	count := Count{}
+	count := formatting.Count{}
 	count.Bytes = len(content)
 
-	count.Words, err = countWords(content)
+	count.Words, err = counting.CountWords(content)
 	if err != nil {
 		return fmt.Errorf("Error counting words: %v", err)
 	}
 
-	count.Lines, err = countLines(content)
+	count.Lines, err = counting.CountLines(content)
 	if err != nil {
 		return fmt.Errorf("Error counting lines: %v", err)
 	}
 
 	switch *outputFormat {
 	case "json":
-		jsonOutput, err := toJSON(count)
+		jsonOutput, err := formatting.ToJSON(count)
 		if err != nil {
 			return fmt.Errorf("Error converting to JSON: %v", err)
 		}
@@ -74,44 +67,4 @@ func run() error {
 	}
 
 	return nil
-}
-
-func countWords(content []byte) (int, error) {
-	wordCount := 0
-
-	scanner := bufio.NewScanner(bytes.NewReader(content))
-	scanner.Split(bufio.ScanWords)
-
-	for scanner.Scan() {
-		wordCount++
-	}
-
-	if err := scanner.Err(); err != nil {
-		return 0, err
-	}
-
-	return wordCount, nil
-}
-
-func countLines(content []byte) (int, error) {
-	lineCount := 0
-
-	scanner := bufio.NewScanner(bytes.NewReader(content))
-	for scanner.Scan() {
-		lineCount++
-	}
-
-	if err := scanner.Err(); err != nil {
-		return 0, err
-	}
-
-	return lineCount, nil
-}
-
-func toJSON(count Count) (string, error) {
-	data, err := json.Marshal(count)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
 }
