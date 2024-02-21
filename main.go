@@ -20,6 +20,11 @@ func run() error {
 	outputFormat := flag.String("f", "text", "Output format: text, json")
 	flag.Parse()
 
+	if flag.NArg() != 1 {
+		printHelp()
+		return nil
+	}
+
 	// Read file content
 	filePath := flag.Arg(0)
 	content, err := os.ReadFile(filePath)
@@ -55,4 +60,16 @@ func printError(err error) {
 
 func print(args ...interface{}) {
 	fmt.Println(args...)
+}
+
+func printHelp() {
+	fmt.Println("Usage: tally [options] <file>")
+	fmt.Println("Options:")
+	fmt.Println("  -f string")
+	fmt.Println("        Output format: text, json")
+	fmt.Println("Examples:")
+	fmt.Println("  # Count words, lines, and bytes in a file (default output format is text)")
+	fmt.Println("  tally filename.txt")
+	fmt.Println("  # Count words, lines, and bytes in a file and export results in JSON format")
+	fmt.Println("  tally -f json filename.txt")
 }
