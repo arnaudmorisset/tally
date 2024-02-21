@@ -9,16 +9,6 @@ import (
 	"github.com/arnaudmorisset/tally/internal/formatting"
 )
 
-// printError prints the error to stderr.
-func printError(err error) {
-	fmt.Fprint(os.Stderr, err.Error()+"\n")
-}
-
-// print prints the arguments to stdout.
-func print(args ...interface{}) {
-	fmt.Println(args...)
-}
-
 func main() {
 	if err := run(); err != nil {
 		printError(err)
@@ -50,21 +40,19 @@ func run() error {
 		return fmt.Errorf("Error counting lines: %v", err)
 	}
 
-	switch *outputFormat {
-	case "json":
-		jsonOutput, err := formatting.ToJSON(count)
-		if err != nil {
-			return fmt.Errorf("Error converting to JSON: %v", err)
-		}
-
-		print(jsonOutput)
-	case "text":
-		fallthrough
-	default:
-		print("Words:", count.Words)
-		print("Lines:", count.Lines)
-		print("Bytes:", count.Bytes)
+	output, err := formatting.FormatOutput(count, *outputFormat)
+	if err != nil {
+		return fmt.Errorf("Error formatting output: %v", err)
 	}
+	print(output)
 
 	return nil
+}
+
+func printError(err error) {
+	fmt.Fprint(os.Stderr, err.Error()+"\n")
+}
+
+func print(args ...interface{}) {
+	fmt.Println(args...)
 }
