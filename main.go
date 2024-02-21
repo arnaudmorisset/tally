@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -67,7 +69,20 @@ func run() error {
 
 // To be implemented
 func countWords(content []byte) int {
-	return 0
+	wordCount := 0
+
+	scanner := bufio.NewScanner(bytes.NewReader(content))
+	scanner.Split(bufio.ScanWords)
+
+	for scanner.Scan() {
+		wordCount++
+	}
+
+	if err := scanner.Err(); err != nil {
+		printError(err)
+	}
+
+	return wordCount
 }
 
 // To be implemented
